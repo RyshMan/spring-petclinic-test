@@ -46,3 +46,7 @@ out/
 _site/
 *.css
 !petclinic.css
+
+### Jenkins local caches and credentials ###
+.m2/
+.docker/
