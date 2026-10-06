@@ -64,7 +64,7 @@ pipeline {
 				)]) {
 					sh '''
 						set -eu
-						export MAVEN_USER_HOME="$WORKSPACE/.m2"
+						export MAVEN_USER_HOME="$WORKSPACE@tmp/.m2"
 						export MVNW_REPOURL="$JFROG_BASE_URL/artifactory/$MAVEN_REPOSITORY"
 						export MVNW_USERNAME="$JFROG_USER"
 						export MVNW_PASSWORD="$JFROG_TOKEN"
@@ -83,7 +83,7 @@ pipeline {
 				)]) {
 					sh '''
 						set -eu
-						export MAVEN_USER_HOME="$WORKSPACE/.m2"
+						export MAVEN_USER_HOME="$WORKSPACE@tmp/.m2"
 						export MVNW_REPOURL="$JFROG_BASE_URL/artifactory/$MAVEN_REPOSITORY"
 						export MVNW_USERNAME="$JFROG_USER"
 						export MVNW_PASSWORD="$JFROG_TOKEN"
@@ -122,7 +122,7 @@ pipeline {
 				)]) {
 					sh '''
 						set -eu
-						export MAVEN_USER_HOME="$WORKSPACE/.m2"
+						export MAVEN_USER_HOME="$WORKSPACE@tmp/.m2"
 						export MVNW_REPOURL="$JFROG_BASE_URL/artifactory/$MAVEN_REPOSITORY"
 						export MVNW_USERNAME="$JFROG_USER"
 						export MVNW_PASSWORD="$JFROG_TOKEN"
@@ -177,6 +177,7 @@ pipeline {
 					export DOCKER_CONFIG="$WORKSPACE/.docker"
 					container_name="petclinic-smoke-$IMAGE_TAG"
 					network_name="petclinic-smoke-$IMAGE_TAG"
+					health_scheme='http'
 
 					cleanup() {
 						docker rm -f "$container_name" >/dev/null 2>&1 || true
@@ -191,7 +192,7 @@ pipeline {
 					ready=0
 					for attempt in $(seq 1 45); do
 						if docker run --rm --network "$network_name" "$CURL_IMAGE" \
-							-fsS "http://$container_name:8080/actuator/health" \
+							-fsS "$health_scheme://$container_name:8080/actuator/health" \
 							| tee /tmp/petclinic-health.json \
 							| grep -q '"status":"UP"'; then
 							ready=1

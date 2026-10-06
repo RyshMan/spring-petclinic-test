@@ -110,7 +110,7 @@ export JFROG_TOKEN
 export MVNW_USERNAME="$JFROG_USER"
 export MVNW_PASSWORD="$JFROG_TOKEN"
 export MVNW_REPOURL="$JFROG_BASE_URL/artifactory/$MAVEN_REPOSITORY"
-export MAVEN_USER_HOME="$PWD/.m2"
+export MAVEN_USER_HOME="${TMPDIR:-/tmp}/petclinic-maven-home"
 
 ./mvnw -B -ntp -s ci/settings.xml clean test
 ```
