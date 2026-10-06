@@ -134,8 +134,27 @@ unset JFROG_TOKEN MVNW_PASSWORD
 
 ## Self-hosted bonus
 
-Deploy a self-hosted Artifactory trial with persistent storage using JFrog's
-supported Docker Compose installer. Create a local Docker repository there and
-add a second publish stage or a parameterized registry target. Keep the required
-dependency resolution pointed at JFrog Cloud so the base requirement remains
-easy to demonstrate.
+Start the pinned Artifactory OSS instance with persistent storage:
+
+```bash
+cp ci/artifactory/.env.example ci/artifactory/.env
+# Replace the example value in .env with a long random password.
+docker compose -f ci/artifactory/docker-compose.yml up -d
+```
+
+The Compose project starts Artifactory, PostgreSQL, and a one-time initializer
+for the persistent encryption keys. Both long-running services use named
+volumes; the database password is kept in the ignored
+`ci/artifactory/.env` file. A clean first start can take several minutes. If the
+Router reaches its startup timeout while PostgreSQL is being initialized,
+restart only Artifactory with `docker restart artifactory-local`.
+
+Open `http://localhost:8082`, sign in with the documented first-run credentials,
+and change the admin password. Artifactory OSS provides the Generic local
+repository `example-repo-local`. Add a Jenkins username/password credential
+named `jfrog-self-hosted`, using the local Artifactory username and password.
+Run the job with `PUBLISH_SELF_HOSTED=true` to upload and verify the packaged
+JAR in local Artifactory.
+
+Dependency resolution remains pointed at JFrog Cloud, preserving the base
+requirement while the self-hosted instance provides a second publication target.

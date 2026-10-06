@@ -14,6 +14,10 @@ pipeline {
 		string(name: 'DOCKER_REMOTE_REPOSITORY', defaultValue: 'docker-virtual', description: 'Docker virtual/remote repository used for dependency images')
 		string(name: 'DOCKER_LOCAL_REPOSITORY', defaultValue: 'docker-local', description: 'Docker local repository used for the Petclinic image')
 		string(name: 'JFROG_CREDENTIALS_ID', defaultValue: 'jfrog-cloud', description: 'Jenkins username/password credential ID')
+		booleanParam(name: 'PUBLISH_SELF_HOSTED', defaultValue: false, description: 'Publish the packaged JAR to local Artifactory')
+		string(name: 'SELF_HOSTED_ARTIFACTORY_HOST', defaultValue: 'host.docker.internal:8082', description: 'Local Artifactory host and port, without a URL scheme')
+		string(name: 'SELF_HOSTED_REPOSITORY', defaultValue: 'example-repo-local', description: 'Self-hosted Generic repository key')
+		string(name: 'SELF_HOSTED_CREDENTIALS_ID', defaultValue: 'jfrog-self-hosted', description: 'Jenkins credential ID for local Artifactory')
 	}
 
 	environment {
@@ -22,6 +26,8 @@ pipeline {
 		DOCKER_REGISTRY = "${params.DOCKER_REGISTRY}"
 		DOCKER_REMOTE_REPOSITORY = "${params.DOCKER_REMOTE_REPOSITORY}"
 		DOCKER_LOCAL_REPOSITORY = "${params.DOCKER_LOCAL_REPOSITORY}"
+		SELF_HOSTED_ARTIFACTORY_HOST = "${params.SELF_HOSTED_ARTIFACTORY_HOST}"
+		SELF_HOSTED_REPOSITORY = "${params.SELF_HOSTED_REPOSITORY}"
 	}
 
 	stages {
@@ -49,6 +55,9 @@ pipeline {
 					}
 					if (!params.MAVEN_REPOSITORY?.trim() || !params.DOCKER_REMOTE_REPOSITORY?.trim() || !params.DOCKER_LOCAL_REPOSITORY?.trim()) {
 						error('Repository parameters must not be empty')
+					}
+					if (params.PUBLISH_SELF_HOSTED && (!params.SELF_HOSTED_ARTIFACTORY_HOST?.trim() || params.SELF_HOSTED_ARTIFACTORY_HOST.contains('://') || !params.SELF_HOSTED_REPOSITORY?.trim())) {
+						error('Set the self-hosted Artifactory host without a URL scheme and a repository key')
 					}
 				}
 				sh 'docker version'
@@ -212,6 +221,38 @@ pipeline {
 
 					cat /tmp/petclinic-health.json
 				'''
+			}
+		}
+
+		stage('Publish JAR to self-hosted Artifactory') {
+			when {
+				expression { params.PUBLISH_SELF_HOSTED }
+			}
+			steps {
+				withCredentials([usernamePassword(
+					credentialsId: params.SELF_HOSTED_CREDENTIALS_ID,
+					usernameVariable: 'SELF_HOSTED_USER',
+					passwordVariable: 'SELF_HOSTED_TOKEN'
+				)]) {
+					sh '''
+						set -eu
+						jar_path=$(find target -maxdepth 1 -name 'spring-petclinic-*.jar' -type f -print -quit)
+						test -n "$jar_path"
+						artifact_path="org/springframework/samples/spring-petclinic/$IMAGE_TAG/$(basename "$jar_path")"
+						endpoint="$SELF_HOSTED_ARTIFACTORY_HOST/artifactory/$SELF_HOSTED_REPOSITORY/$artifact_path"
+						scheme='http'
+
+						set +x
+						curl --fail --show-error --silent \
+							--user "$SELF_HOSTED_USER:$SELF_HOSTED_TOKEN" \
+							--upload-file "$jar_path" \
+							"$scheme://$endpoint"
+						curl --fail --show-error --silent --head \
+							--user "$SELF_HOSTED_USER:$SELF_HOSTED_TOKEN" \
+							"$scheme://$endpoint"
+						set -x
+					'''
+				}
 			}
 		}
 	}

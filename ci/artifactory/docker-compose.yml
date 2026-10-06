@@ -1,0 +1,64 @@
+services:
+  artifactory-init:
+    image: alpine:3.21.3
+    container_name: artifactory-init
+    restart: "no"
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        security_dir=/artifactory/etc/security
+        mkdir -p "$$security_dir"
+        for key_file in master.key join.key; do
+          if [ ! -s "$$security_dir/$$key_file" ]; then
+            head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n' > "$$security_dir/$$key_file"
+          fi
+        done
+        chown -R 1030:1030 "$$security_dir"
+        chmod 700 "$$security_dir"
+        chmod 600 "$$security_dir/master.key" "$$security_dir/join.key"
+    volumes:
+      - artifactory_data:/artifactory
+
+  postgresql:
+    image: postgres:16.8
+    container_name: artifactory-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: artifactory
+      POSTGRES_USER: artifactory
+      POSTGRES_PASSWORD: ${ARTIFACTORY_DB_PASSWORD:?Set ARTIFACTORY_DB_PASSWORD in ci/artifactory/.env}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U artifactory -d artifactory"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+
+  artifactory:
+    image: releases-docker.jfrog.io/jfrog/artifactory-oss:7.161.15
+    container_name: artifactory-local
+    restart: unless-stopped
+    depends_on:
+      artifactory-init:
+        condition: service_completed_successfully
+      postgresql:
+        condition: service_healthy
+    cpus: 4.0
+    mem_limit: 4g
+    environment:
+      JF_SHARED_DATABASE_TYPE: postgresql
+      JF_SHARED_DATABASE_DRIVER: org.postgresql.Driver
+      JF_SHARED_DATABASE_URL: jdbc:postgresql://postgresql:5432/artifactory
+      JF_SHARED_DATABASE_USERNAME: artifactory
+      JF_SHARED_DATABASE_PASSWORD: ${ARTIFACTORY_DB_PASSWORD:?Set ARTIFACTORY_DB_PASSWORD in ci/artifactory/.env}
+    ports:
+      - "127.0.0.1:8081:8081"
+      - "127.0.0.1:8082:8082"
+    volumes:
+      - artifactory_data:/var/opt/jfrog/artifactory
+
+volumes:
+  artifactory_data:
+  postgresql_data:
