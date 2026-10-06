@@ -6,7 +6,6 @@ Cloud supplies dependencies and stores the application image, and how the
 self-hosted Artifactory bonus works.
 
 The original Spring PetClinic documentation remains in [`README.md`](README.md).
-Detailed setup steps are also available in [`ASSESSMENT.md`](ASSESSMENT.md).
 
 ## Architecture
 
