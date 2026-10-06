@@ -79,7 +79,7 @@ separate credentials and controlled Docker access.
 1. Select **New Item** and create a **Pipeline** named `spring-petclinic`.
 2. Under **Pipeline**, choose **Pipeline script from SCM**.
 3. Select **Git** and enter this fork's clone URL.
-4. Set the branch specifier to `*/codex/jfrog-jenkins-pipeline` while developing,
+4. Set the branch specifier to `*/jfrog-jenkins-pipeline` while developing,
    or `*/main` after merging.
 5. Keep the script path as `Jenkinsfile` and save.
 6. Select **Build with Parameters** and enter:
