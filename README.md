@@ -30,6 +30,16 @@ docker run --rm -p 8080:8080 talgat.jfrog.io/docker-local/petclinic:8f6f4b0d6ca5
 Then open <http://localhost:8080>. The health endpoint is
 <http://localhost:8080/actuator/health>.
 
+The submission archive `petclinic-8f6f4b0d6ca5.tar.gz` contains the same tested
+image. Its SHA-256 checksum is
+`2f332de07f3ae1ff244725cfa89db9be7958cdbd454d0cf7d8acb4e61d44ea0a`.
+Load and run the attached archive without JFrog credentials:
+
+```bash
+gunzip -c petclinic-8f6f4b0d6ca5.tar.gz | docker load
+docker run --rm -p 8080:8080 talgat.jfrog.io/docker-local/petclinic:8f6f4b0d6ca5
+```
+
 For the self-hosted bonus, copy `ci/artifactory/.env.example` to
 `ci/artifactory/.env`, replace the example database password, and run:
 
