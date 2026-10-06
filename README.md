@@ -1,59 +1,3 @@
-# Spring PetClinic — Jenkins and JFrog assessment
-
-This fork adds a declarative Jenkins pipeline that compiles Spring PetClinic,
-runs its unit and integration tests, packages the application as a runnable
-Docker image, pushes that image to JFrog Cloud, and performs a live health
-check. Maven artifacts, the Maven wrapper distribution, Testcontainers images,
-database images, and the runtime base image are all resolved through JFrog
-Cloud.
-
-The required deliverables are included in this repository:
-
-- [`Jenkinsfile`](Jenkinsfile) defines the compile, test, package, push, and
-  smoke-test stages.
-- [`Dockerfile`](Dockerfile) creates the non-root runtime image.
-- [`ci/settings.xml`](ci/settings.xml) forces Maven to use the configured JFrog
-  virtual repository.
-- [`ci/artifactory/docker-compose.yml`](ci/artifactory/docker-compose.yml)
-  deploys the optional self-hosted Artifactory OSS bonus with PostgreSQL.
-- [`ASSESSMENT.md`](ASSESSMENT.md) contains the complete setup, credential, run,
-  verification, and troubleshooting guide.
-
-To run the published image:
-
-```bash
-docker login talgat.jfrog.io
-docker pull talgat.jfrog.io/docker-local/petclinic:8f6f4b0d6ca5
-docker run --rm -p 8080:8080 talgat.jfrog.io/docker-local/petclinic:8f6f4b0d6ca5
-```
-
-Then open <http://localhost:8080>. The health endpoint is
-<http://localhost:8080/actuator/health>.
-
-The submission archive `petclinic-8f6f4b0d6ca5.tar.gz` contains the same tested
-image. Its SHA-256 checksum is
-`2f332de07f3ae1ff244725cfa89db9be7958cdbd454d0cf7d8acb4e61d44ea0a`.
-Load and run the attached archive without JFrog credentials:
-
-```bash
-gunzip -c petclinic-8f6f4b0d6ca5.tar.gz | docker load
-docker run --rm -p 8080:8080 talgat.jfrog.io/docker-local/petclinic:8f6f4b0d6ca5
-```
-
-For the self-hosted bonus, copy `ci/artifactory/.env.example` to
-`ci/artifactory/.env`, replace the example database password, and run:
-
-```bash
-docker compose -f ci/artifactory/docker-compose.yml up -d
-```
-
-The local instance is available at <http://localhost:8082>. The pipeline can
-also publish its JAR to the built-in `example-repo-local` Generic repository
-when `PUBLISH_SELF_HOSTED=true` and the `jfrog-self-hosted` Jenkins credential
-is configured.
-
-The rest of this README is the upstream Spring PetClinic project documentation.
-
 # Spring PetClinic Sample Application [![Build Status](https://github.com/spring-projects/spring-petclinic/actions/workflows/maven-build.yml/badge.svg)](https://github.com/spring-projects/spring-petclinic/actions/workflows/maven-build.yml)[![Build Status](https://github.com/spring-projects/spring-petclinic/actions/workflows/gradle-build.yml/badge.svg)](https://github.com/spring-projects/spring-petclinic/actions/workflows/gradle-build.yml)
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/spring-projects/spring-petclinic) [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=7517918)
@@ -98,8 +42,7 @@ See below for more details.
 
 ## Building a Container
 
-This fork includes a `Dockerfile` used by Jenkins. The upstream Spring Boot
-build-plugin path is also available:
+There is no `Dockerfile` in this project. You can build a container image (if you have a docker daemon) using the Spring Boot build plugin:
 
 ```bash
 ./mvnw spring-boot:build-image
