@@ -7,7 +7,7 @@ USER root
 # Track the security-supported Docker CLI supplied by the pinned image's Debian release.
 # hadolint ignore=DL3008
 RUN apt-get update \
-	&& apt-get install --yes --no-install-recommends docker-cli \
+	&& apt-get install --yes --no-install-recommends docker-cli docker-compose \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Local assessment only: root is required for the Docker Desktop socket mount.
