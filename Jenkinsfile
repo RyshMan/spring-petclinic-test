@@ -89,6 +89,7 @@ pipeline {
 						export MVNW_PASSWORD="$JFROG_TOKEN"
 						export DOCKER_CONFIG="$WORKSPACE/.docker"
 						export TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX="$DOCKER_REGISTRY/$DOCKER_REMOTE_REPOSITORY/"
+						export TESTCONTAINERS_HOST_OVERRIDE='host.docker.internal'
 
 						mkdir -p "$DOCKER_CONFIG"
 						set +x
