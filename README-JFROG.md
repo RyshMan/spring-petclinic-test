@@ -108,6 +108,10 @@ docker run -d \
 
 Jenkins is available at <http://localhost:8080>.
 
+Port `8080` is therefore already occupied on the host while Jenkins is
+running. PetClinic still listens on port `8080` inside its own container, but
+the manual run commands below publish it on host port `8083`.
+
 The Docker socket lets this trusted local Jenkins instance build images and
 start test containers on Docker Desktop. In a production environment, builds
 should run on isolated Jenkins agents with controlled Docker access.
@@ -239,7 +243,7 @@ From JFrog Cloud:
 ```bash
 docker login talgat.jfrog.io
 docker pull talgat.jfrog.io/docker-local/petclinic:8f6f4b0d6ca5
-docker run --rm -p 8080:8080 \
+docker run --rm -p 127.0.0.1:8083:8080 \
   talgat.jfrog.io/docker-local/petclinic:8f6f4b0d6ca5
 ```
 
@@ -247,7 +251,7 @@ From the attached portable archive:
 
 ```bash
 gunzip -c petclinic-8f6f4b0d6ca5.tar.gz | docker load
-docker run --rm -p 8080:8080 \
+docker run --rm -p 127.0.0.1:8083:8080 \
   talgat.jfrog.io/docker-local/petclinic:8f6f4b0d6ca5
 ```
 
@@ -257,8 +261,8 @@ The archive SHA-256 checksum is:
 2f332de07f3ae1ff244725cfa89db9be7958cdbd454d0cf7d8acb4e61d44ea0a
 ```
 
-Open <http://localhost:8080> after starting the container. The application
-health endpoint is <http://localhost:8080/actuator/health>.
+Open <http://localhost:8083> after starting the container. The application
+health endpoint is <http://localhost:8083/actuator/health>.
 
 ## Secrets
 
